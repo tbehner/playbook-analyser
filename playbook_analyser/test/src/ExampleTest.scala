@@ -10,6 +10,11 @@ object HelloTests extends TestSuite{
     result.foreach((p: Playbook) => {assert(p.open_ports == ports)})
   }
 
+  def with_playbook(resource: String, test: Playbook => Unit){
+      val content = Source.fromURL(getClass.getResource(resource))
+      Playbook(content.mkString).foreach(test)
+  }
+
   val tests = Tests{
 
     test("can create Playbook") {
@@ -47,5 +52,31 @@ object HelloTests extends TestSuite{
       assert(p.number == 80 && p.prot == Protocol.Tcp)
     }
 
+    test("parse image name from docker rule") {
+      with_playbook("/nginx_docker.yml", pb => {
+        assert(pb.images.length > 0)     
+      })
+    }
+
+    // test("execute trivy checker on image name") {
+    //   val result = Trivy.get_report("ubuntu:latest")
+    //   assert(result.isRight)
+    //   assert(result.right.get.toString.length > 0)
+    // }
+
+    test("extract information from trivy gitlab:13.6.2 report") {
+      import io.circe, io.circe.parser
+      val content = parser.parse(Source.fromURL(getClass.getResource("/gitlab-13-6-2-report.json")).mkString)
+      val analyser = CveReportAnalyser(content.right.get)
+      assert(analyser.has_critical == true)
+    }
+
+    test("extract information from trivy ubuntu:latest report") {
+      import io.circe, io.circe.parser
+      val content = parser.parse(Source.fromURL(getClass.getResource("/ubuntu-latest.json")).mkString)
+      val analyser = CveReportAnalyser(content.right.get)
+      assert(analyser.has_critical == false)
+    }
   }
+
 }

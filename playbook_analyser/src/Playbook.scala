@@ -4,6 +4,7 @@ import io.circe.yaml.parser
 import io.circe.ParsingFailure
 import io.circe.Json
 import io.circe.DecodingFailure
+import sys.process._
 
 object Protocol extends Enumeration {
   type Protocol = Value
@@ -25,8 +26,14 @@ object Port {
 class Playbook(content: Json) {
   def task_groups: List[Json] = content.findAllByKey("tasks").toList
   def all_tasks: List[Json] = task_groups.flatMap(task_list => task_list.asArray.get )
-  def firewall_tasks: List[Json] = all_tasks.filter(p => !p.findAllByKey("firewalld").isEmpty)
-  def open_ports: List[Either[DecodingFailure,Port]] = firewall_tasks.map(task => task.hcursor.downField("firewalld").downField("port").as[String].map(Port(_)))
+  def container_tasks: List[Json] = content.findAllByKey("docker_container")
+  def docker_container_images: List[String] = container_tasks
+    .map(task => task.hcursor.downField("image").as[String])
+    .filter(_.isRight)
+    .map(_.right.get)
+  def images: List[String] = docker_container_images
+  def firewall_tasks: List[Json] = content.findAllByKey("firewalld")
+  def open_ports: List[Either[DecodingFailure,Port]] = firewall_tasks.map(task => task.hcursor.downField("port").as[String].map(Port(_)))
 }
 
 object Playbook {
@@ -34,3 +41,4 @@ object Playbook {
     parser.parse(content).map((parsed_content) => new Playbook(parsed_content))
   }
 }
+

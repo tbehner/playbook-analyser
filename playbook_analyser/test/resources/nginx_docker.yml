@@ -1,0 +1,5 @@
+- name: Container present
+  docker_container:
+    name: mycontainer
+    state: present
+    image: nginx:latest
