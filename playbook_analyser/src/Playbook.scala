@@ -25,14 +25,22 @@ object Port {
 
 class Playbook(content: Json) {
   def task_groups: List[Json] = content.findAllByKey("tasks").toList
+
   def all_tasks: List[Json] = task_groups.flatMap(task_list => task_list.asArray.get )
-  def container_tasks: List[Json] = content.findAllByKey("docker_container")
-  def docker_container_images: List[String] = container_tasks
-    .map(task => task.hcursor.downField("image").as[String])
-    .filter(_.isRight)
-    .map(_.right.get)
-  def images: List[String] = docker_container_images
+
+  def container_images(provider: String): List[String] = {
+    content.findAllByKey(provider)
+      .flatMap(task => task.findAllByKey("image"))
+      .map(_.as[String])
+      .filter(_.isRight)
+      .map(_.right.get)
+  }
+
+  def images: List[String] = List("docker_container", "podman_container", "community.kubernetes.k8s")
+    .foldLeft(List[String]()) { (all, provider_name) => all ::: container_images(provider_name) }
+
   def firewall_tasks: List[Json] = content.findAllByKey("firewalld")
+
   def open_ports: List[Either[DecodingFailure,Port]] = firewall_tasks.map(task => task.hcursor.downField("port").as[String].map(Port(_)))
 }
 

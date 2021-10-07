@@ -1,0 +1,12 @@
+- name: Create a Service object from an inline definition
+  community.kubernetes.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: test-ebs
+        spec:
+          containers:
+            - image: nginx:latest
+              name: test-container

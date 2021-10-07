@@ -58,6 +58,18 @@ object HelloTests extends TestSuite{
       })
     }
 
+    test("parse image name from podman rule") {
+      with_playbook("/nginx_podman.yml", pb => {
+        assert(pb.images.length > 0)     
+      })
+    }
+
+    test("parse image name from kubernetes pod rule") {
+      with_playbook("/nginx_kubernetes.yml", pb => {
+        assert(pb.images.length > 0)     
+      })
+    }
+
     // test("execute trivy checker on image name") {
     //   val result = Trivy.get_report("ubuntu:latest")
     //   assert(result.isRight)

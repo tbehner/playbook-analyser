@@ -1,0 +1,6 @@
+- name: Run nginx container
+  podman_container:
+    name: container
+    image: nginx:latest
+    state: started
+

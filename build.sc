@@ -5,9 +5,9 @@ object playbook_analyser extends ScalaModule{
 
   def ivyDeps = Agg(
     ivy"io.circe::circe-parser::0.14.1",
-    ivy"io.circe::circe-yaml::0.14.1"
-    // ivy"io.circe::circe-generic::0.14.1",
-    // ivy"io.circe::circe-core::0.14.1",
+    ivy"io.circe::circe-yaml::0.14.1",
+    ivy"com.lihaoyi::os-lib:0.7.8",
+    ivy"com.lihaoyi::mainargs:0.2.1"
     )
 
   object test extends Tests {
